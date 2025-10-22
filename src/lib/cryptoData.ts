@@ -14,6 +14,17 @@ export interface UserBalance {
   portfolio: { [key: string]: number };
 }
 
+export interface Transaction {
+  id: string;
+  type: 'buy' | 'sell';
+  cryptoId: string;
+  cryptoSymbol: string;
+  amount: number;
+  price: number;
+  total: number;
+  timestamp: number;
+}
+
 export const initialCryptos: Crypto[] = [
   {
     id: 'btc',

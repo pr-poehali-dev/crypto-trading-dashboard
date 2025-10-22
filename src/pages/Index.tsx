@@ -6,7 +6,12 @@ import Header from '@/components/Header';
 import MarketTab from '@/components/MarketTab';
 import PortfolioTab from '@/components/PortfolioTab';
 import TradeTab from '@/components/TradeTab';
-import { initialCryptos, Crypto, UserBalance } from '@/lib/cryptoData';
+import HistoryTab from '@/components/HistoryTab';
+import LeaderboardTab from '@/components/LeaderboardTab';
+import EducationTab from '@/components/EducationTab';
+import PredictionsTab from '@/components/PredictionsTab';
+import ChartsTab from '@/components/ChartsTab';
+import { initialCryptos, Crypto, UserBalance, Transaction } from '@/lib/cryptoData';
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,6 +22,7 @@ const Index = () => {
     portfolio: {}
   });
   const [cryptos] = useState<Crypto[]>(initialCryptos);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000000) return `$${(num / 1000000000).toFixed(2)}B`;
@@ -35,6 +41,17 @@ const Index = () => {
       return;
     }
 
+    const transaction: Transaction = {
+      id: Date.now().toString(),
+      type: 'buy',
+      cryptoId: selectedCrypto.id,
+      cryptoSymbol: selectedCrypto.symbol,
+      amount,
+      price: selectedCrypto.price,
+      total: totalCost,
+      timestamp: Date.now()
+    };
+
     setBalance({
       usd: balance.usd - totalCost,
       portfolio: {
@@ -42,6 +59,7 @@ const Index = () => {
         [selectedCrypto.id]: (balance.portfolio[selectedCrypto.id] || 0) + amount
       }
     });
+    setTransactions([...transactions, transaction]);
     setTradeAmount('');
     setSelectedCrypto(null);
   };
@@ -57,6 +75,17 @@ const Index = () => {
 
     const totalReceived = amount * selectedCrypto.price;
     
+    const transaction: Transaction = {
+      id: Date.now().toString(),
+      type: 'sell',
+      cryptoId: selectedCrypto.id,
+      cryptoSymbol: selectedCrypto.symbol,
+      amount,
+      price: selectedCrypto.price,
+      total: totalReceived,
+      timestamp: Date.now()
+    };
+
     setBalance({
       usd: balance.usd + totalReceived,
       portfolio: {
@@ -64,6 +93,7 @@ const Index = () => {
         [selectedCrypto.id]: (balance.portfolio[selectedCrypto.id] || 0) - amount
       }
     });
+    setTransactions([...transactions, transaction]);
     setTradeAmount('');
     setSelectedCrypto(null);
   };
@@ -92,20 +122,42 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="market" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="market">
-              <Icon name="TrendingUp" size={18} className="mr-2" />
-              Рынок
-            </TabsTrigger>
-            <TabsTrigger value="portfolio">
-              <Icon name="Briefcase" size={18} className="mr-2" />
-              Портфель
-            </TabsTrigger>
-            <TabsTrigger value="trade">
-              <Icon name="ArrowLeftRight" size={18} className="mr-2" />
-              Торговля
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="inline-flex w-auto">
+              <TabsTrigger value="market">
+                <Icon name="TrendingUp" size={18} className="mr-2" />
+                Рынок
+              </TabsTrigger>
+              <TabsTrigger value="trade">
+                <Icon name="ArrowLeftRight" size={18} className="mr-2" />
+                Торговля
+              </TabsTrigger>
+              <TabsTrigger value="portfolio">
+                <Icon name="Briefcase" size={18} className="mr-2" />
+                Портфель
+              </TabsTrigger>
+              <TabsTrigger value="charts">
+                <Icon name="BarChart3" size={18} className="mr-2" />
+                Графики
+              </TabsTrigger>
+              <TabsTrigger value="history">
+                <Icon name="History" size={18} className="mr-2" />
+                История
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard">
+                <Icon name="Trophy" size={18} className="mr-2" />
+                Рейтинг
+              </TabsTrigger>
+              <TabsTrigger value="education">
+                <Icon name="BookOpen" size={18} className="mr-2" />
+                Обучение
+              </TabsTrigger>
+              <TabsTrigger value="predictions">
+                <Icon name="Sparkles" size={18} className="mr-2" />
+                Предсказания
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="market">
             <MarketTab 
@@ -134,6 +186,26 @@ const Index = () => {
               onBuy={handleBuy}
               onSell={handleSell}
             />
+          </TabsContent>
+
+          <TabsContent value="charts">
+            <ChartsTab cryptos={cryptos} formatNumber={formatNumber} />
+          </TabsContent>
+
+          <TabsContent value="history">
+            <HistoryTab transactions={transactions} formatNumber={formatNumber} />
+          </TabsContent>
+
+          <TabsContent value="leaderboard">
+            <LeaderboardTab formatNumber={formatNumber} />
+          </TabsContent>
+
+          <TabsContent value="education">
+            <EducationTab />
+          </TabsContent>
+
+          <TabsContent value="predictions">
+            <PredictionsTab cryptos={cryptos} formatNumber={formatNumber} />
           </TabsContent>
         </Tabs>
       </main>
