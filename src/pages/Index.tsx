@@ -11,7 +11,9 @@ import LeaderboardTab from '@/components/LeaderboardTab';
 import EducationTab from '@/components/EducationTab';
 import PredictionsTab from '@/components/PredictionsTab';
 import ChartsTab from '@/components/ChartsTab';
+import AdminPanel from '@/components/AdminPanel';
 import { initialCryptos, Crypto, UserBalance, Transaction } from '@/lib/cryptoData';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -21,8 +23,9 @@ const Index = () => {
     usd: 10000,
     portfolio: {}
   });
-  const [cryptos] = useState<Crypto[]>(initialCryptos);
+  const [cryptos, setCryptos] = useState<Crypto[]>(initialCryptos);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000000) return `$${(num / 1000000000).toFixed(2)}B`;
@@ -109,6 +112,16 @@ const Index = () => {
     return total;
   };
 
+  const handleUpdateCrypto = (cryptoId: string, updates: Partial<Crypto>) => {
+    setCryptos(cryptos.map(crypto => 
+      crypto.id === cryptoId ? { ...crypto, ...updates } : crypto
+    ));
+  };
+
+  const handleUpdateBalance = (usd: number) => {
+    setBalance({ ...balance, usd });
+  };
+
   if (!isLoggedIn) {
     return <AuthPage onLogin={() => setIsLoggedIn(true)} />;
   }
@@ -121,6 +134,16 @@ const Index = () => {
       />
 
       <main className="container mx-auto px-4 py-8">
+        <div className="mb-6 flex justify-end">
+          <Button 
+            variant="destructive"
+            onClick={() => setShowAdminPanel(true)}
+            className="gap-2"
+          >
+            <Icon name="ShieldAlert" size={18} />
+            Админ-панель
+          </Button>
+        </div>
         <Tabs defaultValue="market" className="space-y-6">
           <div className="overflow-x-auto">
             <TabsList className="inline-flex w-auto">
@@ -209,6 +232,17 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {showAdminPanel && (
+        <AdminPanel 
+          cryptos={cryptos}
+          balance={balance}
+          formatNumber={formatNumber}
+          onUpdateCrypto={handleUpdateCrypto}
+          onUpdateBalance={handleUpdateBalance}
+          onClose={() => setShowAdminPanel(false)}
+        />
+      )}
     </div>
   );
 };
